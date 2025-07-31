@@ -1034,7 +1034,7 @@ dependencies = [
 [[package]]
 name = "hugr"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "hugr-core",
  "hugr-llvm",
@@ -1045,7 +1045,7 @@ dependencies = [
 [[package]]
 name = "hugr-cli"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "anyhow",
  "clap",
@@ -1062,7 +1062,7 @@ dependencies = [
 [[package]]
 name = "hugr-core"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "base64",
  "cgmath",
@@ -1099,7 +1099,7 @@ dependencies = [
 [[package]]
 name = "hugr-llvm"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "anyhow",
  "delegate 0.13.4",
@@ -1118,7 +1118,7 @@ dependencies = [
 [[package]]
 name = "hugr-model"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "base64",
  "bumpalo",
@@ -1139,7 +1139,7 @@ dependencies = [
 [[package]]
 name = "hugr-passes"
 version = "0.22.1"
-source = "git+https://github.com/CQCL/hugr?rev=90abe47a#90abe47ac9f22de618babf7f6a6f7f939d6acb45"
+source = "git+https://github.com/CQCL/hugr?rev=86be906#86be906cb6ca4d9a77c6ea629e95fcdbb4828296"
 dependencies = [
  "ascent",
  "derive_more 1.0.0",
@@ -1659,7 +1659,7 @@ dependencies = [
 [[package]]
 name = "portgraph"
 version = "0.15.1"
-source = "git+https://github.com/CQCL/portgraph?rev=d87379e#d87379e56f351fef798827b34d59ba3c1e204a0c"
+source = "git+https://github.com/CQCL/portgraph?rev=7019dd6#7019dd6d651f82b7ee320e9345365e72722d2449"
 dependencies = [
  "bitvec",
  "delegate 0.13.4",
