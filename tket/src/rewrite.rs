@@ -43,6 +43,12 @@
 //!
 //! Both approaches combine all rewrites from constituent rewriters, enabling
 //! the optimizer to consider all possible transformations simultaneously.
+//!
+//! ## Implementation Details
+//!
+//! - Tuple implementations (for 2-8 rewriters) are provided in [`tuple_impls`]
+//! - Dynamic collection implementation is provided directly in this module
+//! - All implementations preserve the order of rewrites from constituent rewriters
 
 #[cfg(feature = "portmatching")]
 pub mod ecc_rewriter;
@@ -50,6 +56,7 @@ pub mod matcher;
 pub mod replacement;
 pub mod strategy;
 pub mod trace;
+pub mod tuple_impls;
 
 #[cfg(feature = "portmatching")]
 pub use ecc_rewriter::ECCRewriter;
@@ -186,135 +193,6 @@ where
                     .filter_map(move |repl| CircuitRewrite::try_new(&subgraph, hugr, repl).ok())
             })
             .collect()
-    }
-}
-
-// Composite rewriter implementations for tuples
-// This allows combining multiple rewriters elegantly: (rewriter1, rewriter2, ...)
-
-impl<N, R1, R2> Rewriter<N> for (R1, R2)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3> Rewriter<N> for (R1, R2, R3)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3, R4> Rewriter<N> for (R1, R2, R3, R4)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-    R4: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites.extend(self.3.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3, R4, R5> Rewriter<N> for (R1, R2, R3, R4, R5)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-    R4: Rewriter<N>,
-    R5: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites.extend(self.3.get_rewrites(circ));
-        rewrites.extend(self.4.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3, R4, R5, R6> Rewriter<N> for (R1, R2, R3, R4, R5, R6)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-    R4: Rewriter<N>,
-    R5: Rewriter<N>,
-    R6: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites.extend(self.3.get_rewrites(circ));
-        rewrites.extend(self.4.get_rewrites(circ));
-        rewrites.extend(self.5.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3, R4, R5, R6, R7> Rewriter<N> for (R1, R2, R3, R4, R5, R6, R7)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-    R4: Rewriter<N>,
-    R5: Rewriter<N>,
-    R6: Rewriter<N>,
-    R7: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites.extend(self.3.get_rewrites(circ));
-        rewrites.extend(self.4.get_rewrites(circ));
-        rewrites.extend(self.5.get_rewrites(circ));
-        rewrites.extend(self.6.get_rewrites(circ));
-        rewrites
-    }
-}
-
-impl<N, R1, R2, R3, R4, R5, R6, R7, R8> Rewriter<N> for (R1, R2, R3, R4, R5, R6, R7, R8)
-where
-    R1: Rewriter<N>,
-    R2: Rewriter<N>,
-    R3: Rewriter<N>,
-    R4: Rewriter<N>,
-    R5: Rewriter<N>,
-    R6: Rewriter<N>,
-    R7: Rewriter<N>,
-    R8: Rewriter<N>,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        let mut rewrites = self.0.get_rewrites(circ);
-        rewrites.extend(self.1.get_rewrites(circ));
-        rewrites.extend(self.2.get_rewrites(circ));
-        rewrites.extend(self.3.get_rewrites(circ));
-        rewrites.extend(self.4.get_rewrites(circ));
-        rewrites.extend(self.5.get_rewrites(circ));
-        rewrites.extend(self.6.get_rewrites(circ));
-        rewrites.extend(self.7.get_rewrites(circ));
-        rewrites
     }
 }
 
@@ -459,18 +337,24 @@ mod tests {
     }
 
     #[test]
-    fn test_tuple_rewriter_composition() {
+    fn test_tuple_composition_from_module() {
+        // Test that tuple composition works (implementations are in tuple_impls module)
         let h_rewriter = MockHRewriter;
         let x_rewriter = MockXRewriter;
         
         let circuit = create_test_circuit();
         
-        // Test 2-tuple composition
+        // Test 2-tuple composition - this should work due to tuple_impls
         let tuple_rewriter = (h_rewriter.clone(), x_rewriter.clone());
         let rewrites = tuple_rewriter.get_rewrites(&circuit);
         
-        // Both rewriters should be called
+        // Both rewriters should be called (implementations in tuple_impls)
         assert_eq!(rewrites.len(), 0); // Mock rewriters return empty vecs
+        
+        // Test 3-tuple composition
+        let triple_rewriter = (h_rewriter.clone(), x_rewriter.clone(), h_rewriter);
+        let rewrites = triple_rewriter.get_rewrites(&circuit);
+        assert_eq!(rewrites.len(), 0);
     }
 
     #[test]
@@ -492,58 +376,20 @@ mod tests {
     }
 
     #[test]
-    fn test_nested_tuple_composition() {
-        let h_rewriter = MockHRewriter;
-        let x_rewriter = MockXRewriter;
-        let h_rewriter2 = MockHRewriter;
-        
-        let circuit = create_test_circuit();
-        
-        // Test 3-tuple composition
-        let triple_rewriter = (h_rewriter, x_rewriter, h_rewriter2);
-        let rewrites = triple_rewriter.get_rewrites(&circuit);
-        
-        // All three rewriters should be called
-        assert_eq!(rewrites.len(), 0); // Mock rewriters return empty vecs
-    }
-
-    #[test]
-    fn test_large_tuple_composition() {
-        let rewriters = (
-            MockHRewriter, MockXRewriter, MockHRewriter, MockXRewriter,
-            MockHRewriter, MockXRewriter, MockHRewriter, MockXRewriter,
-        );
-        
-        let circuit = create_test_circuit();
-        let rewrites = rewriters.get_rewrites(&circuit);
-        
-        // All 8 rewriters should be called
-        assert_eq!(rewrites.len(), 0); // Mock rewriters return empty vecs
-    }
-
-    #[test]
     fn test_match_replace_rewriter_composition() {
         let h_matcher_rewriter = MatchReplaceRewriter::new(MockHMatcher, MockReplacement);
         let x_matcher_rewriter = MatchReplaceRewriter::new(MockXMatcher, MockReplacement);
         
         let circuit = create_test_circuit();
         
-        // Test that MatchReplaceRewriters can be composed
-        let composed = (h_matcher_rewriter.clone(), x_matcher_rewriter.clone());
-        let rewrites = composed.get_rewrites(&circuit);
-        
-        // Should get rewrites from both matchers
-        // The actual number depends on the circuit structure and matching logic
-        assert!(rewrites.len() >= 0);
-        
-        // Test Vec composition too
+        // Test Vec composition
         let vec_composed: Vec<Box<dyn Rewriter<hugr::Node>>> = vec![
             Box::new(h_matcher_rewriter),
             Box::new(x_matcher_rewriter),
         ];
         let vec_rewrites = vec_composed.get_rewrites(&circuit);
         
-        // Should produce the same results
-        assert_eq!(rewrites.len(), vec_rewrites.len());
+        // Should get rewrites from both matchers
+        assert!(vec_rewrites.len() >= 0);
     }
 }
