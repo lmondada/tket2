@@ -6,9 +6,9 @@
 //!
 //! ## Rewriter Composition
 //!
-//! Multiple rewriters can be elegantly composed using tuples or dynamic collections:
+//! Multiple rewriters can be elegantly composed using tuples:
 //!
-//! ### Tuple Composition (Recommended)
+//! ### Tuple Composition
 //!
 //! For compile-time known rewriters, use tuple composition:
 //!
@@ -27,28 +27,14 @@
 //! let optimiser = BadgerOptimiser::new(composite_rewriter, strategy);
 //! ```
 //!
-//! ### Dynamic Composition
-//!
-//! For runtime collections of rewriters, use `Vec<Box<dyn Rewriter<N>>>`:
-//!
-//! ```rust,ignore
-//! let rewriters: Vec<Box<dyn Rewriter<hugr::Node>>> = vec![
-//!     Box::new(rewriter1),
-//!     Box::new(rewriter2),
-//!     Box::new(rewriter3),
-//! ];
-//!
-//! let optimiser = BadgerOptimiser::new(rewriters, strategy);
-//! ```
-//!
-//! Both approaches combine all rewrites from constituent rewriters, enabling
+//! This approach combines all rewrites from constituent rewriters, enabling
 //! the optimizer to consider all possible transformations simultaneously.
 //!
 //! ## Implementation Details
 //!
 //! - Tuple implementations (for 2-8 rewriters) are provided in [`tuple_impls`]
-//! - Dynamic collection implementation is provided directly in this module
 //! - All implementations preserve the order of rewrites from constituent rewriters
+//! - Tuple composition is zero-cost and type-safe at compile time
 
 #[cfg(feature = "portmatching")]
 pub mod ecc_rewriter;
@@ -192,18 +178,6 @@ where
                     .into_iter()
                     .filter_map(move |repl| CircuitRewrite::try_new(&subgraph, hugr, repl).ok())
             })
-            .collect()
-    }
-}
-
-// Rewriter implementation for dynamic collections of rewriters
-impl<N> Rewriter<N> for Vec<Box<dyn Rewriter<N>>>
-where
-    N: 'static,
-{
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
-        self.iter()
-            .flat_map(|rewriter| rewriter.get_rewrites(circ))
             .collect()
     }
 }
@@ -358,38 +332,16 @@ mod tests {
     }
 
     #[test]
-    fn test_vec_rewriter_composition() {
-        let h_rewriter = MockHRewriter;
-        let x_rewriter = MockXRewriter;
-        
-        let circuit = create_test_circuit();
-        
-        // Test Vec<Box<dyn Rewriter>> composition
-        let vec_rewriter: Vec<Box<dyn Rewriter<hugr::Node>>> = vec![
-            Box::new(h_rewriter),
-            Box::new(x_rewriter),
-        ];
-        let rewrites = vec_rewriter.get_rewrites(&circuit);
-        
-        // Both rewriters should be called
-        assert_eq!(rewrites.len(), 0); // Mock rewriters return empty vecs
-    }
-
-    #[test]
     fn test_match_replace_rewriter_composition() {
         let h_matcher_rewriter = MatchReplaceRewriter::new(MockHMatcher, MockReplacement);
         let x_matcher_rewriter = MatchReplaceRewriter::new(MockXMatcher, MockReplacement);
         
         let circuit = create_test_circuit();
         
-        // Test Vec composition
-        let vec_composed: Vec<Box<dyn Rewriter<hugr::Node>>> = vec![
-            Box::new(h_matcher_rewriter),
-            Box::new(x_matcher_rewriter),
-        ];
-        let vec_rewrites = vec_composed.get_rewrites(&circuit);
+        // Test tuple composition - just verify it compiles and runs
+        let tuple_composed = (h_matcher_rewriter, x_matcher_rewriter);
+        let _tuple_rewrites = tuple_composed.get_rewrites(&circuit);
         
-        // Should get rewrites from both matchers
-        assert!(vec_rewrites.len() >= 0);
+        // If we get here, the composition worked correctly
     }
 }
