@@ -14,11 +14,11 @@ macro_rules! impl_rewriter_for_tuples {
     // Generate implementation for a specific tuple size
     ($(($($generic:ident),+)),+) => {
         $(
-            impl<N, $($generic),+> Rewriter<N> for ($($generic,)+)
+            impl<H: HugrView, $($generic),+> Rewriter<H> for ($($generic,)+)
             where
-                $($generic: Rewriter<N>,)+
+                $($generic: Rewriter<H>,)+
             {
-                fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>> {
+                fn get_rewrites(&self, circ: &Circuit<H>) -> Vec<CircuitRewrite<H::Node>> {
                     let mut rewrites = Vec::new();
                     let ($($generic,)+) = self;
                     $(
@@ -42,6 +42,12 @@ impl_rewriter_for_tuples! {
     (R1, R2, R3, R4, R5, R6, R7, R8)
 }
 
+impl<H: HugrView> Rewriter<H> for Vec<Box<dyn Rewriter<H>>> {
+    fn get_rewrites(&self, circ: &Circuit<H>) -> Vec<CircuitRewrite<H::Node>> {
+        self.iter().flat_map(|r| r.get_rewrites(circ)).collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -57,11 +63,8 @@ mod tests {
     #[derive(Clone, Debug)]
     struct MockRewriter;
 
-    impl Rewriter<hugr::Node> for MockRewriter {
-        fn get_rewrites(
-            &self,
-            circ: &Circuit<impl HugrView<Node = hugr::Node>>,
-        ) -> Vec<CircuitRewrite<hugr::Node>> {
+    impl<H: HugrView<Node = hugr::Node>> Rewriter<H> for MockRewriter {
+        fn get_rewrites(&self, circ: &Circuit<H>) -> Vec<CircuitRewrite<hugr::Node>> {
             // Return a single (dummy) rewrite
             vec![CircuitRewrite::try_new(
                 &SiblingSubgraph::try_new_dataflow_subgraph::<_, DfgID>(circ.to_owned().hugr())
@@ -94,7 +97,7 @@ mod tests {
     #[case((MockRewriter, MockRewriter, MockRewriter, MockRewriter, MockRewriter, MockRewriter, MockRewriter, MockRewriter), 8)]
     fn test_tuple_rewriters_empty_vecs<R>(#[case] rewriter: R, #[case] expected_len: usize)
     where
-        R: Rewriter<hugr::Node>,
+        R: Rewriter,
     {
         let circuit = create_test_circuit();
         let rewrites = rewriter.get_rewrites(&circuit);
