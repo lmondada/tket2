@@ -182,17 +182,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hugr::{
-        builder::{endo_sig, DFGBuilder, Dataflow, DataflowHugr},
-        extension::prelude::qb_t,
-        hugr::views::SiblingSubgraph,
-    };
     use crate::{
         rewrite::{
             matcher::{CircuitMatcher, MatchContext, MatchOutcome, OpArg},
             replacement::MatchReplacement,
         },
         TketOp,
+    };
+    use hugr::{
+        builder::{endo_sig, DFGBuilder, Dataflow, DataflowHugr},
+        extension::prelude::qb_t,
+        hugr::views::SiblingSubgraph,
     };
 
     /// A mock rewriter for testing that matches Hadamard gates
@@ -235,7 +235,9 @@ mod tests {
         ) -> MatchOutcome<Self::PartialMatchInfo, Self::MatchInfo> {
             if op == TketOp::H {
                 match match_context.match_info {
-                    SimplePartialMatch::Start => MatchOutcome::default().proceed(SimplePartialMatch::Found),
+                    SimplePartialMatch::Start => {
+                        MatchOutcome::default().proceed(SimplePartialMatch::Found)
+                    }
                     SimplePartialMatch::Found => MatchOutcome::default().complete(()),
                 }
             } else {
@@ -256,7 +258,9 @@ mod tests {
         ) -> MatchOutcome<Self::PartialMatchInfo, Self::MatchInfo> {
             if op == TketOp::X {
                 match match_context.match_info {
-                    SimplePartialMatch::Start => MatchOutcome::default().proceed(SimplePartialMatch::Found),
+                    SimplePartialMatch::Start => {
+                        MatchOutcome::default().proceed(SimplePartialMatch::Found)
+                    }
                     SimplePartialMatch::Found => MatchOutcome::default().complete(()),
                 }
             } else {
@@ -280,15 +284,15 @@ mod tests {
         }
     }
 
-    impl Rewriter<hugr::Node> for MockHRewriter {
-        fn get_rewrites(&self, _circ: &Circuit<impl HugrView<Node = hugr::Node>>) -> Vec<CircuitRewrite<hugr::Node>> {
+    impl Rewriter for MockHRewriter {
+        fn get_rewrites(&self, _circ: &Circuit) -> Vec<CircuitRewrite<hugr::Node>> {
             // Return a mock rewrite for testing
             vec![]
         }
     }
 
-    impl Rewriter<hugr::Node> for MockXRewriter {
-        fn get_rewrites(&self, _circ: &Circuit<impl HugrView<Node = hugr::Node>>) -> Vec<CircuitRewrite<hugr::Node>> {
+    impl Rewriter for MockXRewriter {
+        fn get_rewrites(&self, _circ: &Circuit) -> Vec<CircuitRewrite<hugr::Node>> {
             // Return a mock rewrite for testing
             vec![]
         }
@@ -298,11 +302,11 @@ mod tests {
         let mut h = DFGBuilder::new(endo_sig(qb_t())).unwrap();
         let qbs = h.input_wires();
         let mut circ = h.as_circuit(qbs);
-        
+
         // Add some gates
         circ.append(TketOp::H, [0]).unwrap();
         circ.append(TketOp::X, [0]).unwrap();
-        
+
         let qbs = circ.finish();
         Circuit::new(h.finish_hugr_with_outputs(qbs).unwrap())
     }
@@ -312,16 +316,16 @@ mod tests {
         // Test that tuple composition works (implementations are in tuple_impls module)
         let h_rewriter = MockHRewriter;
         let x_rewriter = MockXRewriter;
-        
+
         let circuit = create_test_circuit();
-        
+
         // Test 2-tuple composition - this should work due to tuple_impls
         let tuple_rewriter = (h_rewriter.clone(), x_rewriter.clone());
         let rewrites = tuple_rewriter.get_rewrites(&circuit);
-        
+
         // Both rewriters should be called (implementations in tuple_impls)
         assert_eq!(rewrites.len(), 0); // Mock rewriters return empty vecs
-        
+
         // Test 3-tuple composition
         let triple_rewriter = (h_rewriter.clone(), x_rewriter.clone(), h_rewriter);
         let rewrites = triple_rewriter.get_rewrites(&circuit);
@@ -332,13 +336,13 @@ mod tests {
     fn test_match_replace_rewriter_composition() {
         let h_matcher_rewriter = MatchReplaceRewriter::new(MockHMatcher, MockReplacement);
         let x_matcher_rewriter = MatchReplaceRewriter::new(MockXMatcher, MockReplacement);
-        
+
         let circuit = create_test_circuit();
-        
+
         // Test tuple composition - just verify it compiles and runs
         let tuple_composed = (h_matcher_rewriter, x_matcher_rewriter);
         let _tuple_rewrites = tuple_composed.get_rewrites(&circuit);
-        
+
         // If we get here, the composition worked correctly
     }
 }
