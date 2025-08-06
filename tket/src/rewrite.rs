@@ -133,9 +133,9 @@ impl<N: HugrNode> CircuitRewrite<N> {
 }
 
 /// Generate rewrite rules for circuits.
-pub trait Rewriter<N> {
+pub trait Rewriter<H: HugrView = Hugr> {
     /// Get the rewrite rules for a circuit.
-    fn get_rewrites(&self, circ: &Circuit<impl HugrView<Node = N>>) -> Vec<CircuitRewrite<N>>;
+    fn get_rewrites(&self, circ: &Circuit<H>) -> Vec<CircuitRewrite<H::Node>>;
 }
 
 /// A rewriter that uses a [`CircuitMatcher`] to find matches and a
@@ -156,15 +156,12 @@ impl<C: CircuitMatcher, R> MatchReplaceRewriter<C, R> {
     }
 }
 
-impl<C, R> Rewriter<hugr::Node> for MatchReplaceRewriter<C, R>
+impl<C, R, H: HugrView<Node = hugr::Node>> Rewriter<H> for MatchReplaceRewriter<C, R>
 where
     C: CircuitMatcher,
     R: MatchReplacement<C::MatchInfo>,
 {
-    fn get_rewrites(
-        &self,
-        circ: &Circuit<impl HugrView<Node = hugr::Node>>,
-    ) -> Vec<CircuitRewrite<hugr::Node>> {
+    fn get_rewrites(&self, circ: &Circuit<H>) -> Vec<CircuitRewrite<H::Node>> {
         let hugr = circ.hugr();
         let matches = self
             .matcher
